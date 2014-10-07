@@ -1,0 +1,19 @@
+{
+  "name": "tourcatalog",
+  "version": "1.0.0",
+  "devDependencies": {
+    "node-notifier": "*",
+    "gulp": "*",
+    "gulp-minify-css": "*",
+    "gulp-autoprefixer": "*",
+    "gulp-concat": "*",
+    "gulp-uglify": "*",
+    "gulp-watch": "*",
+    "gulp-notify": "*",
+    "gulp-less": "*",
+    "gulp-sourcemaps": "*",
+    "path": "*",
+    "karma-jasmine": "*",
+    "karma-phantomjs-launcher": "*"
+  }
+}
