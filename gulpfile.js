@@ -22,8 +22,18 @@ gulp.task('css', function() {
         .pipe(gulp.dest('css'));
 });
 
-gulp.task('watch', function() {
-    gulp.watch('less/*', ['css']);
+gulp.task('js', function() {
+    return gulp.src(['js/polyfills.js', 'js/helpers.js', 'js/kpresentation.js', 'js/kshow.js'])
+        .pipe(sourcemaps.init())
+        .pipe(concat('kpresentations.min.js'))
+        .pipe(uglify())
+        .pipe(sourcemaps.write('maps'))
+        .pipe(gulp.dest('js/build'));
 });
 
-gulp.task('default', ['css', 'watch']);
+gulp.task('watch', function() {
+    gulp.watch('less/*', ['css']);
+    gulp.watch('js/*', ['js']);
+});
+
+gulp.task('default', ['css', 'js', 'watch']);

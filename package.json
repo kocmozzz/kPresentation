@@ -14,6 +14,7 @@
     "gulp-sourcemaps": "*",
     "path": "*",
     "karma-jasmine": "*",
-    "karma-phantomjs-launcher": "*"
+    "karma-phantomjs-launcher": "*",
+    "karma-chrome-launcher": "~0.1.5"
   }
 }
