@@ -1,4 +1,4 @@
-(function () {
+(function (window, document, undefined) {
 
     function Exception(message) {
         console.warn(message);
@@ -13,7 +13,14 @@
     this.KPresentation = function (domObj, frameClassName) {
         this.options = {
             activePresentationClass: 'isShown',
-            activeFrameClass: 'active'
+            activeFrameClass: 'active',
+            browserPrefixes: [
+                'WebkitTransform',
+                'MozTransform',
+                'msTransform',
+                'OTransform',
+                'transform'
+            ]
         };
 
         this.isShown = false;
@@ -55,6 +62,7 @@
 
         this.addClass(this.domObj, this.options.activePresentationClass);
         this.isShown = true;
+        this.resize(this.computeScale());
 
         return this;
     };
@@ -65,6 +73,7 @@
     KPresentation.prototype.stopPresentation = function () {
         this.removeClass(this.domObj, this.options.activePresentationClass);
         this.isShown = false;
+        this.resize(1);
 
         return this;
     };
@@ -139,6 +148,24 @@
         return -1;
     };
 
+    KPresentation.prototype.resize = function (divider) {
+        var self = this;
+
+        this.options.browserPrefixes.forEach(function (prop) {
+            self.domObj.style[prop] = 'scale(' + divider + ')';
+        });
+
+        return true;
+    };
+
+
+    KPresentation.prototype.computeScale = function() {
+        return 1 / Math.max(
+            this.domObj.clientWidth / window.innerWidth,
+            this.domObj.clientHeight / window.innerHeight
+        );
+    };
+
     /**
      * Key press events
      * @param event
@@ -159,8 +186,11 @@
             case 'button:space':
                 this.next();
                 break;
+            case 'window:resize':
+                this.resize(this.computeScale());
+                break;
             default:
                 break;
         }
     };
-})();
+})(this, this.document);

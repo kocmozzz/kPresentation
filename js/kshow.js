@@ -2,7 +2,7 @@
     this.KShow = function () {
         var defaults = {
                 presentationClass: 'k-presentation',
-                frameClass: 'k-presentation-frame'
+                frameClass: 'frame'
             },
             instance = this;
 
@@ -54,6 +54,10 @@
                     default:
                         break;
                 }
+            },
+
+            resize: function() {
+                this.notify('window:resize');
             }
         };
 
@@ -75,6 +79,7 @@
 
         function bind() {
             document.onkeydown = this.handlers.keydown.bind(this);
+            window.onresize = this.handlers.resize.bind(this);
         }
 
         init.call(this);

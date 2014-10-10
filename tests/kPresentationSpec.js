@@ -1,17 +1,16 @@
 describe("KPresentation", function () {
     var slideClass = 'k-presentation-slide',
-        presentation = {};
+        presentation = {},
+        obj = document.createElement("article");
+
+    for (var i = 0; i < 3; i++) {
+        var slide = document.createElement("section");
+        slide.className = slideClass;
+
+        obj.appendChild(slide);
+    }
 
     beforeEach(function () {
-        var obj = document.createElement("article");
-
-        for (var i = 0; i < 3; i++) {
-            var slide = document.createElement("section");
-            slide.className = slideClass;
-
-            obj.appendChild(slide);
-        }
-
         presentation = new KPresentation(obj, slideClass);
     });
 
@@ -98,27 +97,27 @@ describe("KPresentation", function () {
         ).toBeTruthy();
     });
 
-    it("should set isShown to true and add active class to presentation", function() {
+    it("should set isShown to true and add active class to presentation", function () {
         presentation.startPresentation();
 
         expect(presentation.isShown).toBeTruthy();
         expect(presentation.hasClass(presentation.domObj, presentation.options.activePresentationClass)).toBeTruthy();
     });
 
-    it("should set isShown to false and remove active class to presentation", function() {
+    it("should set isShown to false and remove active class to presentation", function () {
         presentation.stopPresentation();
 
         expect(presentation.isShown).toBeFalsy();
         expect(presentation.hasClass(presentation.domObj, presentation.options.activePresentationClass)).toBeFalsy();
     });
 
-    it("should return false on handle if is not shown", function() {
+    it("should return false on handle if is not shown", function () {
         presentation.isShown = false;
 
         expect(presentation.handle('smth')).toBeFalsy();
     });
 
-    it("should call next method on button:next event", function() {
+    it("should call next method on button:next event", function () {
         spyOn(presentation, 'next').andCallThrough();
 
         presentation.startPresentation();
@@ -127,7 +126,7 @@ describe("KPresentation", function () {
         expect(presentation.next).toHaveBeenCalled();
     });
 
-    it("should call prev method on button:space event", function() {
+    it("should call prev method on button:space event", function () {
         spyOn(presentation, 'next').andCallThrough();
 
         presentation.startPresentation();
@@ -136,7 +135,7 @@ describe("KPresentation", function () {
         expect(presentation.next).toHaveBeenCalled();
     });
 
-    it("should call prev method on button:prev event", function() {
+    it("should call prev method on button:prev event", function () {
         spyOn(presentation, 'prev').andCallThrough();
 
         presentation.startPresentation();
@@ -145,7 +144,7 @@ describe("KPresentation", function () {
         expect(presentation.prev).toHaveBeenCalled();
     });
 
-    it("should call prev method on button:esc event", function() {
+    it("should call prev method on button:esc event", function () {
         spyOn(presentation, 'stopPresentation').andCallThrough();
 
         presentation.startPresentation();
