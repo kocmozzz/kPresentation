@@ -2,7 +2,7 @@
     this.KShow = function () {
         var defaults = {
                 presentationClass: 'k-presentation',
-                frameClass: 'frame'
+                frameTag: 'section'
             },
             instance = this;
 
@@ -56,7 +56,7 @@
                 }
             },
 
-            resize: function() {
+            resize: function () {
                 this.notify('window:resize');
             }
         };
@@ -73,13 +73,13 @@
             }
 
             for (var i = 0; i < length; i++) {
-                this.add(new KPresentation(presentationsDomObjects[i], this.options.frameClass));
+                this.add(new KPresentation(presentationsDomObjects[i], this.options.frameTag));
             }
         }
 
         function bind() {
-            document.onkeydown = this.handlers.keydown.bind(this);
-            window.onresize = this.handlers.resize.bind(this);
+            window.addEventListener('keydown', this.handlers.keydown.bind(this));
+            window.addEventListener('resize', this.handlers.resize.bind(this));
         }
 
         init.call(this);

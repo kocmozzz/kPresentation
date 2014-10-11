@@ -1,21 +1,20 @@
 describe("KPresentation", function () {
-    var slideClass = 'k-presentation-slide',
+    var slideTag = 'section',
         presentation = {},
         obj = document.createElement("article");
 
     for (var i = 0; i < 3; i++) {
         var slide = document.createElement("section");
-        slide.className = slideClass;
 
         obj.appendChild(slide);
     }
 
     beforeEach(function () {
-        presentation = new KPresentation(obj, slideClass);
+        presentation = new KPresentation(obj, slideTag);
     });
 
     it("should check if first slide has class active after init", function () {
-        expect(presentation.hasClass(presentation.slides[0], 'active')).toBeTruthy();
+        expect(presentation.slides[0].classList.contains(presentation.options.activeFrameClass)).toBeTruthy();
     });
 
     it("should check if active slide is first and return true", function () {
@@ -61,7 +60,6 @@ describe("KPresentation", function () {
 
     it("should not find frame object", function () {
         var slide = document.createElement("section");
-        slide.className = 'k-presentation-slide';
 
         expect(presentation.indexOf(slide)).toEqual(-1);
     });
@@ -71,7 +69,7 @@ describe("KPresentation", function () {
 
         expect(presentation.activeSlide).toEqual(1);
         expect(
-            presentation.hasClass(presentation.slides[presentation.activeSlide], presentation.options.activeFrameClass)
+            presentation.slides[presentation.activeSlide].classList.contains(presentation.options.activeFrameClass)
         ).toBeTruthy();
     });
 
@@ -80,7 +78,7 @@ describe("KPresentation", function () {
 
         expect(presentation.activeSlide).toEqual(1);
         expect(
-            presentation.hasClass(presentation.slides[presentation.activeSlide], presentation.options.activeFrameClass)
+            presentation.slides[presentation.activeSlide].classList.contains(presentation.options.activeFrameClass)
         ).toBeTruthy();
     });
 
@@ -93,7 +91,7 @@ describe("KPresentation", function () {
 
         expect(presentation.activeSlide).toEqual(0);
         expect(
-            presentation.hasClass(presentation.slides[presentation.activeSlide], presentation.options.activeFrameClass)
+            presentation.slides[presentation.activeSlide].classList.contains(presentation.options.activeFrameClass)
         ).toBeTruthy();
     });
 
@@ -101,14 +99,16 @@ describe("KPresentation", function () {
         presentation.startPresentation();
 
         expect(presentation.isShown).toBeTruthy();
-        expect(presentation.hasClass(presentation.domObj, presentation.options.activePresentationClass)).toBeTruthy();
+        expect(presentation.domObj.classList.contains(presentation.options.activePresentationClass)).toBeTruthy();
+        expect(document.body.classList.contains(presentation.options.activeBodyClass)).toBeTruthy();
     });
 
     it("should set isShown to false and remove active class to presentation", function () {
         presentation.stopPresentation();
 
         expect(presentation.isShown).toBeFalsy();
-        expect(presentation.hasClass(presentation.domObj, presentation.options.activePresentationClass)).toBeFalsy();
+        expect(presentation.domObj.classList.contains(presentation.options.activePresentationClass)).toBeFalsy();
+        expect(document.body.classList.contains(presentation.options.activeBodyClass)).toBeFalsy();
     });
 
     it("should return false on handle if is not shown", function () {

@@ -7,12 +7,13 @@
     /**
      * Presentation
      * @param domObj
-     * @param frameClassName
+     * @param frameTagName
      * @constructor
      */
-    this.KPresentation = function (domObj, frameClassName) {
+    this.KPresentation = function (domObj, frameTagName) {
         this.options = {
-            activePresentationClass: 'isShown',
+            activePresentationClass: 'is-shown',
+            activeBodyClass: 'show-started',
             activeFrameClass: 'active',
             browserPrefixes: [
                 'WebkitTransform',
@@ -29,18 +30,21 @@
         this.slidesCount = 0;
 
         this.domObj = domObj;
-        this.frameClassName = frameClassName;
 
-        this.slides = this.domObj.getElementsByClassName(this.frameClassName);
+        this.slides = this.domObj.getElementsByTagName(frameTagName);
+        this.slides = Array.prototype.slice.call(this.slides);
         this.slidesCount = this.slides.length;
 
+        /**
+         * Prepare presentation to be started by click on it
+         */
         function preparePresentationToBeShown() {
             this.domObj.addEventListener('click', this.startPresentation.bind(this));
         }
 
         function init() {
             if (this.slidesCount) {
-                this.addClass(this.slides[0], this.options.activeFrameClass);
+                this.slides[0].classList.add(this.options.activeFrameClass);
                 preparePresentationToBeShown.call(this);
             } else {
                 throw new Exception("No slides available. Check slides class selector.");
@@ -48,6 +52,8 @@
         }
 
         init.call(this);
+
+        return this;
     };
 
     KPresentation.prototype = new Helper();
@@ -60,7 +66,8 @@
     KPresentation.prototype.startPresentation = function () {
         if (this.isShown) return;
 
-        this.addClass(this.domObj, this.options.activePresentationClass);
+        this.domObj.classList.add(this.options.activePresentationClass);
+        document.body.classList.add(this.options.activeBodyClass);
         this.isShown = true;
         this.resize(this.computeScale());
 
@@ -71,7 +78,8 @@
      * Cancel presentation
      */
     KPresentation.prototype.stopPresentation = function () {
-        this.removeClass(this.domObj, this.options.activePresentationClass);
+        this.domObj.classList.remove(this.options.activePresentationClass);
+        document.body.classList.remove(this.options.activeBodyClass);
         this.isShown = false;
         this.resize(1);
 
@@ -84,9 +92,9 @@
     KPresentation.prototype.next = function () {
         if (this.checkLast()) return;
 
-        this.removeClass(this.slides[this.activeSlide], this.options.activeFrameClass);
+        this.slides[this.activeSlide].classList.remove(this.options.activeFrameClass);
         this.activeSlide++;
-        this.addClass(this.slides[this.activeSlide], this.options.activeFrameClass);
+        this.slides[this.activeSlide].classList.add(this.options.activeFrameClass);
 
         return this;
     };
@@ -97,9 +105,9 @@
     KPresentation.prototype.prev = function () {
         if (this.checkFirst()) return;
 
-        this.removeClass(this.slides[this.activeSlide], this.options.activeFrameClass);
+        this.slides[this.activeSlide].classList.remove(this.options.activeFrameClass);
         this.activeSlide--;
-        this.addClass(this.slides[this.activeSlide], this.options.activeFrameClass);
+        this.slides[this.activeSlide].classList.add(this.options.activeFrameClass);
 
         return this;
     };
@@ -108,11 +116,11 @@
      * Go to $index slide
      */
     KPresentation.prototype.goto = function (i) {
-        if (i < 0 || i > this.slides.length - 1) return false;
+        if (i < 0 || i > this.slidesCount - 1) return false;
 
-        this.removeClass(this.slides[this.activeSlide], this.options.activeFrameClass);
+        this.slides[this.activeSlide].classList.remove(this.options.activeFrameClass);
         this.activeSlide = i;
-        this.addClass(this.slides[this.activeSlide], this.options.activeFrameClass);
+        this.slides[this.activeSlide].classList.add(this.options.activeFrameClass);
 
         return this;
     };
@@ -137,29 +145,26 @@
      * @returns {boolean}
      */
     KPresentation.prototype.indexOf = function (slide) {
-        var i = 0;
-
-        while (i < this.slides.length) {
-            if (this.slides[i] === slide) {
-                return i;
-            }
-            i++;
-        }
-        return -1;
+        return this.slides.indexOf(slide);
     };
 
-    KPresentation.prototype.resize = function (divider) {
+    /**
+     * Resize presentation to fill window properly
+     * @param scale
+     */
+    KPresentation.prototype.resize = function (scale) {
         var self = this;
 
         this.options.browserPrefixes.forEach(function (prop) {
-            self.domObj.style[prop] = 'scale(' + divider + ')';
+            self.domObj.style[prop] = 'scale(' + scale + ')';
         });
-
-        return true;
     };
 
-
-    KPresentation.prototype.computeScale = function() {
+    /**
+     * Compute scale to resize presentation
+     * @returns {number}
+     */
+    KPresentation.prototype.computeScale = function () {
         return 1 / Math.max(
             this.domObj.clientWidth / window.innerWidth,
             this.domObj.clientHeight / window.innerHeight

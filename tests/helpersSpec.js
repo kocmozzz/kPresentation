@@ -22,29 +22,6 @@ describe("Helper", function () {
         };
     });
 
-    it("should remove second class", function () {
-        helper.removeClass(obj, 'second');
-        expect(obj.className).toEqual('first');
-    });
-
-    it("should not remove anything", function () {
-        helper.removeClass(obj, 'third');
-        expect(obj.className).toEqual('first second');
-    });
-
-    it("should add third class", function () {
-        helper.addClass(obj, 'third');
-        expect(obj.className).toEqual('first second third');
-    });
-
-    it("should find first class", function () {
-        expect(helper.hasClass(obj, 'first')).toBeTruthy();
-    });
-
-    it("should not find third class", function () {
-        expect(helper.hasClass(obj, 'third')).toBeFalsy();
-    });
-
     it("should extend all default options", function () {
         var custom = helper.extendDefaultOptions(defaults, customOpts);
 
