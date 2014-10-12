@@ -2,7 +2,7 @@
     this.KShow = function () {
         var defaults = {
                 presentationClass: 'k-presentation',
-                frameTag: 'section',
+                slideTag: 'section',
                 hiddenClass: 'hidden'
             },
             instance = this;
@@ -121,14 +121,14 @@
             }
 
             for (var i = 0; i < length; i++) {
-                this.add(new KPresentation(this.presentationsDomObjects[i], this.options.frameTag));
+                this.add(new KPresentation(this.presentationsDomObjects[i], this.options.slideTag));
             }
         }
 
         function bind() {
             var self = this;
 
-            window.addEventListener('keydown', self.handlers.keydown.bind(self));
+            document.addEventListener('keydown', self.handlers.keydown.bind(self));
             window.addEventListener('resize', self.handlers.resize.bind(self));
             self.presentationsDomObjects.forEach(function(presentation) {
                 presentation.addEventListener('click', self.handlers.start.bind(self), false);

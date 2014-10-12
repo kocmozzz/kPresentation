@@ -14,7 +14,7 @@ describe("KPresentation", function () {
     });
 
     it("should check if first slide has class active after init", function () {
-        expect(presentation.slides[0].classList.contains(presentation.options.activeFrameClass)).toBeTruthy();
+        expect(presentation.slides[0].classList.contains(presentation.options.activeSlideClass)).toBeTruthy();
     });
 
     it("should check if active slide is first and return true", function () {
@@ -57,7 +57,7 @@ describe("KPresentation", function () {
 
         expect(presentation.activeSlide).toEqual(1);
         expect(
-            presentation.slides[presentation.activeSlide].classList.contains(presentation.options.activeFrameClass)
+            presentation.slides[presentation.activeSlide].classList.contains(presentation.options.activeSlideClass)
         ).toBeTruthy();
     });
 
@@ -66,7 +66,7 @@ describe("KPresentation", function () {
 
         expect(presentation.activeSlide).toEqual(1);
         expect(
-            presentation.slides[presentation.activeSlide].classList.contains(presentation.options.activeFrameClass)
+            presentation.slides[presentation.activeSlide].classList.contains(presentation.options.activeSlideClass)
         ).toBeTruthy();
     });
 
@@ -79,7 +79,7 @@ describe("KPresentation", function () {
 
         expect(presentation.activeSlide).toEqual(0);
         expect(
-            presentation.slides[presentation.activeSlide].classList.contains(presentation.options.activeFrameClass)
+            presentation.slides[presentation.activeSlide].classList.contains(presentation.options.activeSlideClass)
         ).toBeTruthy();
     });
 
@@ -141,16 +141,4 @@ describe("KPresentation", function () {
         expect(presentation.stopPresentation).toHaveBeenCalled();
     });
 
-    it("should return 0 progress on first slide", function() {
-        presentation.activeSlide = 0;
-
-        expect(presentation.computeProgress()).toEqual(0);
-    });
-
-    it("should return 10% progress on second slide if there are 11 slides", function() {
-        presentation.activeSlide = 1;
-        presentation.slidesCount = 11;
-
-        expect(presentation.computeProgress()).toEqual(10);
-    });
 });
