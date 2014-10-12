@@ -8,13 +8,16 @@
      * Presentation
      * @param domObj
      * @param frameTagName
+     * @returns {*}
      * @constructor
      */
     this.KPresentation = function (domObj, frameTagName) {
         this.options = {
             activePresentationClass: 'is-shown',
+            navigatedPresentationClass: 'is-navigated',
             activeBodyClass: 'show-started',
             activeFrameClass: 'active',
+            progressbarClass: 'k-presentation-progress',
             browserPrefixes: [
                 'WebkitTransform',
                 'MozTransform',
@@ -25,13 +28,16 @@
         };
 
         this.isShown = false;
+        this.isNavigated = false;
+        this.selected = false;
         this.slides = [];
         this.activeSlide = 0;
         this.slidesCount = 0;
-
+        this.progressBar = {};
         this.domObj = domObj;
+        this.frameTagName = frameTagName;
 
-        this.slides = this.domObj.getElementsByTagName(frameTagName);
+        this.slides = this.domObj.getElementsByTagName(this.frameTagName);
         this.slides = Array.prototype.slice.call(this.slides);
         this.slidesCount = this.slides.length;
 
@@ -39,7 +45,12 @@
          * Prepare presentation to be started by click on it
          */
         function preparePresentationToBeShown() {
-            this.domObj.addEventListener('click', this.startPresentation.bind(this));
+            var self = this;
+
+            /* Create progressbar */
+            self.progressBar = document.createElement('div');
+            self.progressBar.className = self.options.progressbarClass;
+            self.domObj.appendChild(self.progressBar);
         }
 
         function init() {
@@ -58,7 +69,32 @@
 
     KPresentation.prototype = new Helper();
 
+    KPresentation.prototype.slideClick = function(e) {
+        var slide = e.target,
+            ftn = this.frameTagName.toUpperCase();
+
+        if(slide.tagName !== ftn) {
+            while(slide.tagName !== ftn) {
+                slide = slide.parentNode;
+            }
+        }
+
+        this.goto(this.slides.indexOf(slide));
+    };
+
     /* Public methods */
+
+    KPresentation.prototype.startNavigatePresentation = function () {
+        this.isNavigated = true;
+        this.domObj.classList.add(this.options.navigatedPresentationClass);
+        this.domObj.addEventListener('click', this.slideClick.bind(this), false);
+    };
+
+    KPresentation.prototype.stopNavigatePresentation = function () {
+        this.isNavigated = false;
+        this.domObj.classList.remove(this.options.navigatedPresentationClass);
+        this.domObj.removeEventListener('click', this.slideClick.bind(this), false);
+    };
 
     /**
      * Start presentation
@@ -68,6 +104,7 @@
 
         this.domObj.classList.add(this.options.activePresentationClass);
         document.body.classList.add(this.options.activeBodyClass);
+        this.domObj.classList.remove(this.options.navigatedPresentationClass);
         this.isShown = true;
         this.resize(this.computeScale());
 
@@ -80,6 +117,7 @@
     KPresentation.prototype.stopPresentation = function () {
         this.domObj.classList.remove(this.options.activePresentationClass);
         document.body.classList.remove(this.options.activeBodyClass);
+        this.domObj.classList.add(this.options.navigatedPresentationClass);
         this.isShown = false;
         this.resize(1);
 
@@ -96,6 +134,8 @@
         this.activeSlide++;
         this.slides[this.activeSlide].classList.add(this.options.activeFrameClass);
 
+        this.updateProgress(this.computeProgress());
+
         return this;
     };
 
@@ -109,6 +149,8 @@
         this.activeSlide--;
         this.slides[this.activeSlide].classList.add(this.options.activeFrameClass);
 
+        this.updateProgress(this.computeProgress());
+
         return this;
     };
 
@@ -121,6 +163,10 @@
         this.slides[this.activeSlide].classList.remove(this.options.activeFrameClass);
         this.activeSlide = i;
         this.slides[this.activeSlide].classList.add(this.options.activeFrameClass);
+
+        this.updateProgress(this.computeProgress());
+
+        if(!this.isShown) this.startPresentation();
 
         return this;
     };
@@ -137,15 +183,6 @@
      */
     KPresentation.prototype.checkFirst = function () {
         return this.activeSlide === 0;
-    };
-
-    /**
-     * Find index of slide
-     * @param slide
-     * @returns {boolean}
-     */
-    KPresentation.prototype.indexOf = function (slide) {
-        return this.slides.indexOf(slide);
     };
 
     /**
@@ -172,14 +209,37 @@
     };
 
     /**
+     * Compute progress percentage
+     * @returns {number}
+     */
+    KPresentation.prototype.computeProgress = function () {
+        if (!this.activeSlide) return 0;
+
+        return 100 / (this.slidesCount - 1) * (this.activeSlide);
+    };
+
+    /**
+     * Update progressbar width
+     * @param percentage
+     */
+    KPresentation.prototype.updateProgress = function (percentage) {
+        this.progressBar.style.width = percentage + '%';
+    };
+
+    /**
      * Key press events
      * @param event
      */
     KPresentation.prototype.handle = function (event) {
-        if (!this.isShown) return false;
+        if (!this.isShown && !this.isNavigated) return false;
 
         switch (event) {
             case 'button:esc':
+                if (!this.isShown && this.isNavigated) {
+                    this.stopNavigatePresentation();
+                    break;
+                }
+
                 this.stopPresentation();
                 break;
             case 'button:prev':
@@ -191,7 +251,15 @@
             case 'button:space':
                 this.next();
                 break;
+            case 'button:enter':
+                if (!this.isShown && this.isNavigated) {
+                    this.startPresentation();
+                    break;
+                }
+                break;
             case 'window:resize':
+                if(!this.isShown) break;
+
                 this.resize(this.computeScale());
                 break;
             default:

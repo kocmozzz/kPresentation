@@ -52,18 +52,6 @@ describe("KPresentation", function () {
         expect(presentation.checkLast).toHaveBeenCalled();
     });
 
-    it("should find frame object", function () {
-        var slide = presentation.slides[0];
-
-        expect(presentation.indexOf(slide)).toEqual(0);
-    });
-
-    it("should not find frame object", function () {
-        var slide = document.createElement("section");
-
-        expect(presentation.indexOf(slide)).toEqual(-1);
-    });
-
     it("should go to next and have active slide equal to 1", function () {
         presentation.next();
 
@@ -151,5 +139,18 @@ describe("KPresentation", function () {
         presentation.handle('button:esc');
 
         expect(presentation.stopPresentation).toHaveBeenCalled();
+    });
+
+    it("should return 0 progress on first slide", function() {
+        presentation.activeSlide = 0;
+
+        expect(presentation.computeProgress()).toEqual(0);
+    });
+
+    it("should return 10% progress on second slide if there are 11 slides", function() {
+        presentation.activeSlide = 1;
+        presentation.slidesCount = 11;
+
+        expect(presentation.computeProgress()).toEqual(10);
     });
 });

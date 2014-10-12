@@ -2,7 +2,8 @@
     this.KShow = function () {
         var defaults = {
                 presentationClass: 'k-presentation',
-                frameTag: 'section'
+                frameTag: 'section',
+                hiddenClass: 'hidden'
             },
             instance = this;
 
@@ -41,6 +42,8 @@
                 switch (e.keyCode) {
                     case 27:
                         this.notify('button:esc');
+                        this.handlers.stop.call(this);
+
                         break;
                     case 37:
                         this.notify('button:prev');
@@ -51,6 +54,9 @@
                     case 32:
                         this.notify('button:space');
                         break;
+                    case 13:
+                        this.notify('button:enter');
+                        break;
                     default:
                         break;
                 }
@@ -58,6 +64,46 @@
 
             resize: function () {
                 this.notify('window:resize');
+            },
+
+            start: function(e) {
+                var presentation = e.target;
+
+                if(!presentation.classList.contains(this.options.presentationClass)) {
+                    while(!presentation.classList.contains(this.options.presentationClass)) {
+                        presentation = presentation.parentNode;
+                    }
+                }
+
+                var index = this.presentationsDomObjects.indexOf(presentation);
+
+                if(index !== -1) {
+                    if(this.presentations[index].isNavigated) {
+                        return false;
+                    } else {
+                        this.presentations[index].startNavigatePresentation();
+                    }
+
+                    for(var i = 0, length = this.presentationsDomObjects.length; i < length; i++) {
+                        if(i == index) continue;
+
+                        this.presentationsDomObjects[i].classList.add(this.options.hiddenClass);
+                    }
+                }
+
+                e.stopImmediatePropagation();
+            },
+
+            stop: function() {
+                var navigated = this.presentations.filter(function(presentation) {
+                    return presentation.isNavigated;
+                });
+
+                if(!navigated.length) {
+                    for(var i = 0, length = this.presentationsDomObjects.length; i < length; i++) {
+                        this.presentationsDomObjects[i].classList.remove(this.options.hiddenClass);
+                    }
+                }
             }
         };
 
@@ -65,21 +111,28 @@
          * Initialize object of kShow
          */
         function init() {
-            var presentationsDomObjects = document.getElementsByClassName(this.options.presentationClass),
-                length = presentationsDomObjects.length;
+            this.presentationsDomObjects = document.getElementsByClassName(this.options.presentationClass);
+            this.presentationsDomObjects = Array.prototype.slice.call(this.presentationsDomObjects);
+
+            var length = this.presentationsDomObjects.length;
 
             if (!length) {
                 console.warn("No presentations available. Check presentations class selector.");
             }
 
             for (var i = 0; i < length; i++) {
-                this.add(new KPresentation(presentationsDomObjects[i], this.options.frameTag));
+                this.add(new KPresentation(this.presentationsDomObjects[i], this.options.frameTag));
             }
         }
 
         function bind() {
-            window.addEventListener('keydown', this.handlers.keydown.bind(this));
-            window.addEventListener('resize', this.handlers.resize.bind(this));
+            var self = this;
+
+            window.addEventListener('keydown', self.handlers.keydown.bind(self));
+            window.addEventListener('resize', self.handlers.resize.bind(self));
+            self.presentationsDomObjects.forEach(function(presentation) {
+                presentation.addEventListener('click', self.handlers.start.bind(self), false);
+            });
         }
 
         init.call(this);
