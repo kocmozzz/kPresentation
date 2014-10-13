@@ -64,65 +64,104 @@
 
         init.call(this);
 
+        /**
+         * Compute scale to resize presentation
+         * @returns {number}
+         */
+        function computeScale() {
+            return 1 / Math.max(
+                this.domObj.clientWidth / window.innerWidth,
+                this.domObj.clientHeight / window.innerHeight
+            );
+        }
+
+        /**
+         * Resize presentation to fill window properly
+         * @param scale
+         */
+        this.resize = (function (scale) {
+            var self = this;
+
+            scale = (typeof scale == 'undefined' || typeof scale == 'object') ? computeScale.call(this) : scale;
+
+            this.options.browserPrefixes.forEach(function (prop) {
+                self.domObj.style[prop] = 'scale(' + scale + ')';
+            });
+        }).bind(this);
+
+        /**
+         * Compute progress percentage
+         * @returns {number}
+         */
+        function computeProgress() {
+            if (!this.activeSlide) return 0;
+
+            return 100 / (this.slidesCount - 1) * (this.activeSlide);
+        }
+
+        /**
+         * Update progressbar width
+         */
+        this.updateProgress = (function () {
+            this.progressBar.style.width = computeProgress.call(this) + '%';
+        }).bind(this);
+
+        /**
+         * Slide click handler
+         * @type {*|function(this:*)}
+         */
+        this.slideClick = (function (e) {
+            var slide = e.target,
+                ftn = this.slideTagName.toUpperCase();
+
+            if (slide.tagName !== ftn) {
+                while (slide.tagName !== ftn) {
+                    slide = slide.parentNode;
+                }
+            }
+
+            this.goto(this.slides.indexOf(slide));
+        }).bind(this);
+
+        /**
+         * Keypress handler
+         * @type {*|function(this:*)}
+         */
+        this.keyPress = (function (e) {
+            switch (e.keyCode) {
+                case 27: //esc
+                    if (!this.isShown) {
+                        this.stopNavigatePresentation();
+                        break;
+                    }
+
+                    this.stopPresentation();
+                    break;
+                case 37:
+                    this.prev();
+                    break;
+                case 39:
+                    this.next();
+                    break;
+                case 32:
+                    this.next();
+                    break;
+                case 13:
+                    if (!this.isShown && this.isNavigated) {
+                        this.startPresentation();
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }).bind(this);
+
         return this;
     };
 
-    KPresentation.prototype = new Helper();
-
-    /**
-     * Compute scale to resize presentation
-     * @returns {number}
-     */
-    function computeScale() {
-        return 1 / Math.max(
-            this.domObj.clientWidth / window.innerWidth,
-            this.domObj.clientHeight / window.innerHeight
-        );
-    }
-
-    /**
-     * Resize presentation to fill window properly
-     * @param scale
-     */
-    function resize(scale) {
-        var self = this;
-
-        scale = (typeof scale == 'undefined') ? computeScale.call(this) : scale;
-
-        this.options.browserPrefixes.forEach(function (prop) {
-            self.domObj.style[prop] = 'scale(' + scale + ')';
-        });
-    }
-
-    /**
-     * Compute progress percentage
-     * @returns {number}
-     */
-    function computeProgress() {
-        if (!this.activeSlide) return 0;
-
-        return 100 / (this.slidesCount - 1) * (this.activeSlide);
-    }
-
-    /**
-     * Update progressbar width
-     */
-    function updateProgress() {
-        this.progressBar.style.width = computeProgress.call(this) + '%';
-    }
-
-    function slideClick(e) {
-        var slide = e.target,
-            ftn = this.slideTagName.toUpperCase();
-
-        if(slide.tagName !== ftn) {
-            while(slide.tagName !== ftn) {
-                slide = slide.parentNode;
-            }
-        }
-
-        this.goto(this.slides.indexOf(slide));
-    }
+    //old fashioned way to support phantomJS
+    var presentationClosed = document.createEvent('Event');
+    presentationClosed.initEvent('presentation:closed', true, true);
 
     /* Public methods */
     /**
@@ -131,7 +170,9 @@
     KPresentation.prototype.startNavigatePresentation = function () {
         this.isNavigated = true;
         this.domObj.classList.add(this.options.navigatedPresentationClass);
-        this.domObj.addEventListener('click', slideClick.bind(this), false);
+
+        this.domObj.addEventListener('click', this.slideClick, false);
+        window.addEventListener('keydown', this.keyPress, false);
     };
 
     /**
@@ -140,7 +181,10 @@
     KPresentation.prototype.stopNavigatePresentation = function () {
         this.isNavigated = false;
         this.domObj.classList.remove(this.options.navigatedPresentationClass);
-        this.domObj.removeEventListener('click', slideClick.bind(this), false);
+        this.domObj.removeEventListener('click', this.slideClick, false);
+
+        window.removeEventListener('keydown', this.keyPress, false);
+        document.body.dispatchEvent(presentationClosed);
     };
 
     /**
@@ -153,7 +197,9 @@
         document.body.classList.add(this.options.activeBodyClass);
         this.domObj.classList.remove(this.options.navigatedPresentationClass);
         this.isShown = true;
-        resize.call(this);
+
+        this.resize();
+        window.addEventListener('resize', this.resize);
 
         return this;
     };
@@ -166,7 +212,9 @@
         document.body.classList.remove(this.options.activeBodyClass);
         this.domObj.classList.add(this.options.navigatedPresentationClass);
         this.isShown = false;
-        resize.apply(this, [1]);
+
+        window.removeEventListener('resize', this.resize);
+        this.resize(1);
 
         return this;
     };
@@ -181,7 +229,7 @@
         this.activeSlide++;
         this.slides[this.activeSlide].classList.add(this.options.activeSlideClass);
 
-        updateProgress.call(this);
+        this.updateProgress();
 
         return this;
     };
@@ -196,7 +244,7 @@
         this.activeSlide--;
         this.slides[this.activeSlide].classList.add(this.options.activeSlideClass);
 
-        updateProgress.call(this);
+        this.updateProgress();
 
         return this;
     };
@@ -211,9 +259,9 @@
         this.activeSlide = i;
         this.slides[this.activeSlide].classList.add(this.options.activeSlideClass);
 
-        updateProgress.call(this);
+        this.updateProgress();
 
-        if(!this.isShown) this.startPresentation();
+        if (!this.isShown) this.startPresentation();
 
         return this;
     };
@@ -230,45 +278,5 @@
      */
     KPresentation.prototype.checkFirst = function () {
         return this.activeSlide === 0;
-    };
-
-    /**
-     * Key press events
-     * @param event
-     */
-    KPresentation.prototype.handle = function (event) {
-        if (!this.isShown && !this.isNavigated) return false;
-
-        switch (event) {
-            case 'button:esc':
-                if (!this.isShown && this.isNavigated) {
-                    this.stopNavigatePresentation();
-                    break;
-                }
-
-                this.stopPresentation();
-                break;
-            case 'button:prev':
-                this.prev();
-                break;
-            case 'button:next':
-                this.next();
-                break;
-            case 'button:space':
-                this.next();
-                break;
-            case 'button:enter':
-                if (!this.isShown && this.isNavigated) {
-                    this.startPresentation();
-                }
-                break;
-            case 'window:resize':
-                if(!this.isShown) break;
-
-                resize.call(this);
-                break;
-            default:
-                break;
-        }
     };
 })(this, this.document);

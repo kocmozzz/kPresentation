@@ -1,6 +1,6 @@
 #kPresentation
 
-Presentation engine that supports multiple presentations on page and keyboard control.
+Presentation engine that supports multiple presentations on page and keyboard control. User left/right arrows, space, enter and esc to navigate.
 
 ##TODO
 

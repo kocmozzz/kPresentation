@@ -22,22 +22,26 @@ describe("Helper", function () {
         };
     });
 
-    it("should extend all default options", function () {
-        var custom = helper.extendDefaultOptions(defaults, customOpts);
+    describe('#extendDefaultOptions', function() {
 
-        expect(custom).toEqual(customOpts);
-    });
+        it("should extend all default options", function () {
+            var custom = helper.extendDefaultOptions(defaults, customOpts);
 
-    it("should extend only half of default options", function () {
-        var custom = helper.extendDefaultOptions(defaults, halfCustomOpts);
+            expect(custom).toEqual(customOpts);
+        });
 
-        expect(custom).toEqual(halfCustomOpts);
-    });
+        it("should extend only half of default options", function () {
+            var custom = helper.extendDefaultOptions(defaults, halfCustomOpts);
 
-    it("should return default options", function () {
-        var custom = helper.extendDefaultOptions(defaults, null);
+            expect(custom).toEqual(halfCustomOpts);
+        });
 
-        expect(custom).toEqual(defaults);
+        it("should return default options", function () {
+            var custom = helper.extendDefaultOptions(defaults, null);
+
+            expect(custom).toEqual(defaults);
+        });
+
     });
 
 });
